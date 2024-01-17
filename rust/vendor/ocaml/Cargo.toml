@@ -42,7 +42,7 @@ optional = true
 
 [dependencies.ocaml-boxroot-sys]
 git = "https://github.com/TheNumbat/ocaml-boxroot"
-rev = "652d92b"
+branch = "ocaml5"
 
 [dependencies.ocaml-derive]
 version = "^1.0.0-beta.5"

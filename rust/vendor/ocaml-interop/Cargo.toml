@@ -14,7 +14,7 @@ edition = "2018"
 name = "ocaml-interop"
 version = "0.9.2"
 authors = ["Bruno Deferrari <utizoc@gmail.com>"]
-links = "asmrun"
+links = "asmrun,ocaml-boxroot"
 exclude = [".github/*"]
 description = "Utilities for Rust and OCaml interoperability"
 homepage = "https://github.com/tizoc/ocaml-interop"
@@ -40,7 +40,7 @@ static_assertions = "1.1.0"
 
 [dependencies.ocaml-boxroot-sys]
 git = "https://github.com/TheNumbat/ocaml-boxroot"
-rev = "652d92b"
+branch = "ocaml5"
 
 [dependencies.ocaml-sys]
 git = "https://github.com/TheNumbat/ocaml-rs"

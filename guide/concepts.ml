@@ -104,13 +104,12 @@ let%expect_test "Data Structures" =
 
 (* Examples from https://pola-rs.github.io/polars-book/user-guide/concepts/contexts/ *)
 let%expect_test "Contexts" =
-  let r = Random.State.make [||] in
   let df =
     Data_frame.create_exn
       Series.
         [ into "nrs" [ Some 1; Some 2; Some 3; None; Some 5 ]
         ; stringo "names" [ Some "foo"; Some "ham"; Some "spam"; Some "egg"; None ]
-        ; float "random" (List.init 5 ~f:(fun _ -> Random.State.float r 5.))
+        ; float "random" [ 1.848939; 4.490401; 3.147566; 0.156988; 0.831802 ]
         ; string "groups" [ "A"; "A"; "B"; "C"; "B" ]
         ]
   in
