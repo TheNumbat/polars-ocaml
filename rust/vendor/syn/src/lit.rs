@@ -758,10 +758,12 @@ macro_rules! lit_extra_traits {
         }
 
         #[cfg(feature = "parsing")]
-        #[doc(hidden)]
-        #[allow(non_snake_case)]
-        pub fn $ty(marker: lookahead::TokenMarker) -> $ty {
-            match marker {}
+        pub_if_not_doc! {
+            #[doc(hidden)]
+            #[allow(non_snake_case)]
+            pub fn $ty(marker: lookahead::TokenMarker) -> $ty {
+                match marker {}
+            }
         }
     };
 }
@@ -774,30 +776,33 @@ lit_extra_traits!(LitInt);
 lit_extra_traits!(LitFloat);
 
 #[cfg(feature = "parsing")]
-#[doc(hidden)]
-#[allow(non_snake_case)]
-pub fn LitBool(marker: lookahead::TokenMarker) -> LitBool {
-    match marker {}
-}
-
-ast_enum! {
-    /// The style of a string literal, either plain quoted or a raw string like
-    /// `r##"data"##`.
-    pub enum StrStyle #no_visit {
-        /// An ordinary string like `"data"`.
-        Cooked,
-        /// A raw string like `r##"data"##`.
-        ///
-        /// The unsigned integer is the number of `#` symbols used.
-        Raw(usize),
+pub_if_not_doc! {
+    #[doc(hidden)]
+    #[allow(non_snake_case)]
+    pub fn LitBool(marker: lookahead::TokenMarker) -> LitBool {
+        match marker {}
     }
 }
 
+/// The style of a string literal, either plain quoted or a raw string like
+/// `r##"data"##`.
+#[doc(hidden)] // https://github.com/dtolnay/syn/issues/1566
+pub enum StrStyle {
+    /// An ordinary string like `"data"`.
+    Cooked,
+    /// A raw string like `r##"data"##`.
+    ///
+    /// The unsigned integer is the number of `#` symbols used.
+    Raw(usize),
+}
+
 #[cfg(feature = "parsing")]
-#[doc(hidden)]
-#[allow(non_snake_case)]
-pub fn Lit(marker: lookahead::TokenMarker) -> Lit {
-    match marker {}
+pub_if_not_doc! {
+    #[doc(hidden)]
+    #[allow(non_snake_case)]
+    pub fn Lit(marker: lookahead::TokenMarker) -> Lit {
+        match marker {}
+    }
 }
 
 #[cfg(feature = "parsing")]
@@ -1089,6 +1094,7 @@ mod value {
                 // c"...", cr"...", cr#"..."#
                 // TODO: add a Lit::CStr variant?
                 b'c' => return Lit::Verbatim(token),
+                b'(' if repr == "(/*ERROR*/)" => return Lit::Verbatim(token),
                 _ => {}
             }
 

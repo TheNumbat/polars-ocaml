@@ -82,6 +82,19 @@ impl Path {
             None
         }
     }
+
+    /// An error if this path is not a single ident, as defined in `get_ident`.
+    #[cfg(feature = "parsing")]
+    #[cfg_attr(doc_cfg, doc(cfg(feature = "parsing")))]
+    pub fn require_ident(&self) -> Result<&Ident> {
+        self.get_ident().ok_or_else(|| {
+            crate::error::new2(
+                self.segments.first().unwrap().ident.span(),
+                self.segments.last().unwrap().ident.span(),
+                "expected this path to be an identifier",
+            )
+        })
+    }
 }
 
 ast_struct! {
@@ -264,7 +277,7 @@ ast_struct! {
 pub(crate) mod parsing {
     use super::*;
 
-    use crate::ext::IdentExt;
+    use crate::ext::IdentExt as _;
     use crate::parse::{Parse, ParseStream, Result};
 
     #[cfg_attr(doc_cfg, doc(cfg(feature = "parsing")))]
@@ -411,7 +424,10 @@ pub(crate) mod parsing {
             Self::do_parse(Some(colon2_token), input)
         }
 
-        fn do_parse(colon2_token: Option<Token![::]>, input: ParseStream) -> Result<Self> {
+        pub(crate) fn do_parse(
+            colon2_token: Option<Token![::]>,
+            input: ParseStream,
+        ) -> Result<Self> {
             Ok(AngleBracketedGenericArguments {
                 colon2_token,
                 lt_token: input.parse()?,
