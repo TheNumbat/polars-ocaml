@@ -85,13 +85,12 @@ let%expect_test "Basic Operators" =
 
 (* Examples from https://pola-rs.github.io/polars-book/user-guide/expressions/functions/ *)
 let%expect_test "Functions" =
-  let r = Random.State.make [||] in
   let df =
     Data_frame.create_exn
       Series.
         [ into "nrs" [ Some 1; Some 2; Some 3; None; Some 5 ]
         ; string "names" [ "foo"; "ham"; "spam"; "egg"; "spam" ]
-        ; float "random" (List.init 5 ~f:(fun _ -> Random.State.float r 5.))
+        ; float "random" [ 1.848939; 4.490401; 3.147566; 0.156988; 0.831802 ]
         ; string "groups" [ "A"; "A"; "B"; "C"; "B" ]
         ]
   in
@@ -104,11 +103,11 @@ let%expect_test "Functions" =
     │ ---  ┆ ---   ┆ ---      ┆ ---    │
     │ i64  ┆ str   ┆ f64      ┆ str    │
     ╞══════╪═══════╪══════════╪════════╡
-    │ 1    ┆ foo   ┆ 2.608729 ┆ A      │
-    │ 2    ┆ ham   ┆ 1.690818 ┆ A      │
-    │ 3    ┆ spam  ┆ 4.946423 ┆ B      │
-    │ null ┆ egg   ┆ 1.199071 ┆ C      │
-    │ 5    ┆ spam  ┆ 0.953596 ┆ B      │
+    │ 1    ┆ foo   ┆ 1.848939 ┆ A      │
+    │ 2    ┆ ham   ┆ 4.490401 ┆ A      │
+    │ 3    ┆ spam  ┆ 3.147566 ┆ B      │
+    │ null ┆ egg   ┆ 0.156988 ┆ C      │
+    │ 5    ┆ spam  ┆ 0.831802 ┆ B      │
     └──────┴───────┴──────────┴────────┘ |}];
   let df_alias =
     Data_frame.select_exn
