@@ -1,6 +1,6 @@
 //! Facility for interpreting structured content inside of an `Attribute`.
 
-use crate::ext::IdentExt;
+use crate::ext::IdentExt as _;
 use crate::lit::Lit;
 use crate::parse::{Error, ParseStream, Parser, Result};
 use crate::path::{Path, PathSegment};
@@ -129,7 +129,13 @@ use std::fmt::Display;
 /// }
 /// ```
 pub fn parser(logic: impl FnMut(ParseNestedMeta) -> Result<()>) -> impl Parser<Output = ()> {
-    |input: ParseStream| parse_nested_meta(input, logic)
+    |input: ParseStream| {
+        if input.is_empty() {
+            Ok(())
+        } else {
+            parse_nested_meta(input, logic)
+        }
+    }
 }
 
 /// Context for parsing a single property in the conventional syntax for
@@ -401,6 +407,8 @@ fn parse_meta_path(input: ParseStream) -> Result<Path> {
             if input.peek(Ident::peek_any) {
                 let ident = Ident::parse_any(input)?;
                 segments.push_value(PathSegment::from(ident));
+            } else if input.is_empty() {
+                return Err(input.error("expected nested attribute"));
             } else if input.peek(Lit) {
                 return Err(input.error("unexpected literal in nested attribute, expected ident"));
             } else {

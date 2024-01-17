@@ -3,6 +3,7 @@
 #![recursion_limit = "1024"]
 #![feature(rustc_private)]
 #![allow(
+    clippy::blocks_in_conditions,
     clippy::manual_assert,
     clippy::manual_let_else,
     clippy::match_like_matches_macro,
@@ -22,7 +23,6 @@ extern crate rustc_span;
 
 use crate::common::eq::SpanlessEq;
 use quote::quote;
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use rustc_ast::ast::{
     AngleBracketedArg, AngleBracketedArgs, Crate, GenericArg, GenericParamKind, Generics,
     WhereClause,
@@ -34,13 +34,13 @@ use rustc_errors::{translation, Diagnostic, PResult};
 use rustc_session::parse::ParseSess;
 use rustc_span::source_map::FilePathMapping;
 use rustc_span::FileName;
+use std::borrow::Cow;
 use std::fs;
 use std::panic;
 use std::path::Path;
 use std::process;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Instant;
-use walkdir::{DirEntry, WalkDir};
 
 #[macro_use]
 mod macros;
@@ -61,19 +61,7 @@ fn test_round_trip() {
 
     let failed = AtomicUsize::new(0);
 
-    WalkDir::new("tests/rust")
-        .sort_by(|a, b| a.file_name().cmp(b.file_name()))
-        .into_iter()
-        .filter_entry(repo::base_dir_filter)
-        .collect::<Result<Vec<DirEntry>, walkdir::Error>>()
-        .unwrap()
-        .into_par_iter()
-        .for_each(|entry| {
-            let path = entry.path();
-            if !path.is_dir() {
-                test(path, &failed, abort_after);
-            }
-        });
+    repo::for_each_rust_file(|path| test(path, &failed, abort_after));
 
     let failed = failed.load(Ordering::Relaxed);
     if failed > 0 {
@@ -168,7 +156,7 @@ fn librustc_parse(content: String, sess: &ParseSess) -> PResult<Crate> {
     parse::parse_crate_from_source_str(name, content, sess)
 }
 
-fn translate_message(diagnostic: &Diagnostic) -> String {
+fn translate_message(diagnostic: &Diagnostic) -> Cow<'static, str> {
     thread_local! {
         static FLUENT_BUNDLE: LazyFallbackBundle = {
             let locale_resources = rustc_driver::DEFAULT_LOCALE_RESOURCES.to_vec();
@@ -177,7 +165,7 @@ fn translate_message(diagnostic: &Diagnostic) -> String {
         };
     }
 
-    let message = &diagnostic.message[0].0;
+    let message = &diagnostic.messages[0].0;
     let args = translation::to_fluent_args(diagnostic.args());
 
     let (identifier, attr) = match message {
@@ -200,7 +188,7 @@ fn translate_message(diagnostic: &Diagnostic) -> String {
         let mut err = Vec::new();
         let translated = fluent_bundle.format_pattern(value, Some(&args), &mut err);
         assert!(err.is_empty());
-        translated.into_owned()
+        Cow::Owned(translated.into_owned())
     })
 }
 
