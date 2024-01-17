@@ -1,12 +1,11 @@
-#![allow(clippy::single_element_loop, clippy::uninlined_format_args)]
+#![allow(clippy::uninlined_format_args)]
 
 #[macro_use]
 mod macros;
 
-use proc_macro2::{Delimiter, Group};
-use quote::{quote, ToTokens as _};
-use syn::punctuated::Punctuated;
-use syn::{parse_quote, token, Expr, ExprRange, ExprTuple, Stmt, Token};
+use proc_macro2::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
+use quote::quote;
+use syn::{Expr, ExprRange};
 
 #[test]
 fn test_expr_parse() {
@@ -101,8 +100,10 @@ fn test_tuple_multi_index() {
 #[test]
 fn test_macro_variable_func() {
     // mimics the token stream corresponding to `$fn()`
-    let path = Group::new(Delimiter::None, quote!(f));
-    let tokens = quote!(#path());
+    let tokens = TokenStream::from_iter(vec![
+        TokenTree::Group(Group::new(Delimiter::None, quote! { f })),
+        TokenTree::Group(Group::new(Delimiter::Parenthesis, TokenStream::new())),
+    ]);
 
     snapshot!(tokens as Expr, @r###"
     Expr::Call {
@@ -120,8 +121,12 @@ fn test_macro_variable_func() {
     }
     "###);
 
-    let path = Group::new(Delimiter::None, quote! { #[inside] f });
-    let tokens = quote!(#[outside] #path());
+    let tokens = TokenStream::from_iter(vec![
+        TokenTree::Punct(Punct::new('#', Spacing::Alone)),
+        TokenTree::Group(Group::new(Delimiter::Bracket, quote! { outside })),
+        TokenTree::Group(Group::new(Delimiter::None, quote! { #[inside] f })),
+        TokenTree::Group(Group::new(Delimiter::Parenthesis, TokenStream::new())),
+    ]);
 
     snapshot!(tokens as Expr, @r###"
     Expr::Call {
@@ -167,8 +172,11 @@ fn test_macro_variable_func() {
 #[test]
 fn test_macro_variable_macro() {
     // mimics the token stream corresponding to `$macro!()`
-    let mac = Group::new(Delimiter::None, quote!(m));
-    let tokens = quote!(#mac!());
+    let tokens = TokenStream::from_iter(vec![
+        TokenTree::Group(Group::new(Delimiter::None, quote! { m })),
+        TokenTree::Punct(Punct::new('!', Spacing::Alone)),
+        TokenTree::Group(Group::new(Delimiter::Parenthesis, TokenStream::new())),
+    ]);
 
     snapshot!(tokens as Expr, @r###"
     Expr::Macro {
@@ -190,8 +198,10 @@ fn test_macro_variable_macro() {
 #[test]
 fn test_macro_variable_struct() {
     // mimics the token stream corresponding to `$struct {}`
-    let s = Group::new(Delimiter::None, quote! { S });
-    let tokens = quote!(#s {});
+    let tokens = TokenStream::from_iter(vec![
+        TokenTree::Group(Group::new(Delimiter::None, quote! { S })),
+        TokenTree::Group(Group::new(Delimiter::Brace, TokenStream::new())),
+    ]);
 
     snapshot!(tokens as Expr, @r###"
     Expr::Struct {
@@ -207,35 +217,22 @@ fn test_macro_variable_struct() {
 }
 
 #[test]
-fn test_macro_variable_unary() {
-    // mimics the token stream corresponding to `$expr.method()` where expr is `&self`
-    let inner = Group::new(Delimiter::None, quote!(&self));
-    let tokens = quote!(#inner.method());
-    snapshot!(tokens as Expr, @r###"
-    Expr::MethodCall {
-        receiver: Expr::Group {
-            expr: Expr::Reference {
-                expr: Expr::Path {
-                    path: Path {
-                        segments: [
-                            PathSegment {
-                                ident: "self",
-                            },
-                        ],
-                    },
-                },
-            },
-        },
-        method: "method",
-    }
-    "###);
-}
-
-#[test]
 fn test_macro_variable_match_arm() {
     // mimics the token stream corresponding to `match v { _ => $expr }`
-    let expr = Group::new(Delimiter::None, quote! { #[a] () });
-    let tokens = quote!(match v { _ => #expr });
+    let tokens = TokenStream::from_iter(vec![
+        TokenTree::Ident(Ident::new("match", Span::call_site())),
+        TokenTree::Ident(Ident::new("v", Span::call_site())),
+        TokenTree::Group(Group::new(
+            Delimiter::Brace,
+            TokenStream::from_iter(vec![
+                TokenTree::Punct(Punct::new('_', Spacing::Alone)),
+                TokenTree::Punct(Punct::new('=', Spacing::Joint)),
+                TokenTree::Punct(Punct::new('>', Spacing::Alone)),
+                TokenTree::Group(Group::new(Delimiter::None, quote! { #[a] () })),
+            ]),
+        )),
+    ]);
+
     snapshot!(tokens as Expr, @r###"
     Expr::Match {
         expr: Expr::Path {
@@ -264,40 +261,6 @@ fn test_macro_variable_match_arm() {
                                 },
                             },
                         ],
-                    },
-                },
-            },
-        ],
-    }
-    "###);
-
-    let expr = Group::new(Delimiter::None, quote!(loop {} + 1));
-    let tokens = quote!(match v { _ => #expr });
-    snapshot!(tokens as Expr, @r###"
-    Expr::Match {
-        expr: Expr::Path {
-            path: Path {
-                segments: [
-                    PathSegment {
-                        ident: "v",
-                    },
-                ],
-            },
-        },
-        arms: [
-            Arm {
-                pat: Pat::Wild,
-                body: Expr::Group {
-                    expr: Expr::Binary {
-                        left: Expr::Loop {
-                            body: Block {
-                                stmts: [],
-                            },
-                        },
-                        op: BinOp::Add,
-                        right: Expr::Lit {
-                            lit: 1,
-                        },
                     },
                 },
             },
@@ -346,195 +309,4 @@ fn test_ranges() {
     syn::parse_str::<Expr>("...hi").unwrap_err();
     syn::parse_str::<Expr>("lo...").unwrap_err();
     syn::parse_str::<Expr>("lo...hi").unwrap_err();
-}
-
-#[test]
-fn test_ambiguous_label() {
-    for stmt in [
-        quote! {
-            return 'label: loop { break 'label 42; };
-        },
-        quote! {
-            break ('label: loop { break 'label 42; });
-        },
-        quote! {
-            break 1 + 'label: loop { break 'label 42; };
-        },
-        quote! {
-            break 'outer 'inner: loop { break 'inner 42; };
-        },
-    ] {
-        syn::parse2::<Stmt>(stmt).unwrap();
-    }
-
-    for stmt in [
-        // Parentheses required. See https://github.com/rust-lang/rust/pull/87026.
-        quote! {
-            break 'label: loop { break 'label 42; };
-        },
-    ] {
-        syn::parse2::<Stmt>(stmt).unwrap_err();
-    }
-}
-
-#[test]
-fn test_extended_interpolated_path() {
-    let path = Group::new(Delimiter::None, quote!(a::b));
-
-    let tokens = quote!(if #path {});
-    snapshot!(tokens as Expr, @r###"
-    Expr::If {
-        cond: Expr::Group {
-            expr: Expr::Path {
-                path: Path {
-                    segments: [
-                        PathSegment {
-                            ident: "a",
-                        },
-                        Token![::],
-                        PathSegment {
-                            ident: "b",
-                        },
-                    ],
-                },
-            },
-        },
-        then_branch: Block {
-            stmts: [],
-        },
-    }
-    "###);
-
-    let tokens = quote!(#path {});
-    snapshot!(tokens as Expr, @r###"
-    Expr::Struct {
-        path: Path {
-            segments: [
-                PathSegment {
-                    ident: "a",
-                },
-                Token![::],
-                PathSegment {
-                    ident: "b",
-                },
-            ],
-        },
-    }
-    "###);
-
-    let tokens = quote!(#path :: c);
-    snapshot!(tokens as Expr, @r###"
-    Expr::Path {
-        path: Path {
-            segments: [
-                PathSegment {
-                    ident: "a",
-                },
-                Token![::],
-                PathSegment {
-                    ident: "b",
-                },
-                Token![::],
-                PathSegment {
-                    ident: "c",
-                },
-            ],
-        },
-    }
-    "###);
-
-    let nested = Group::new(Delimiter::None, quote!(a::b || true));
-    let tokens = quote!(if #nested && false {});
-    snapshot!(tokens as Expr, @r###"
-    Expr::If {
-        cond: Expr::Binary {
-            left: Expr::Group {
-                expr: Expr::Binary {
-                    left: Expr::Path {
-                        path: Path {
-                            segments: [
-                                PathSegment {
-                                    ident: "a",
-                                },
-                                Token![::],
-                                PathSegment {
-                                    ident: "b",
-                                },
-                            ],
-                        },
-                    },
-                    op: BinOp::Or,
-                    right: Expr::Lit {
-                        lit: Lit::Bool {
-                            value: true,
-                        },
-                    },
-                },
-            },
-            op: BinOp::And,
-            right: Expr::Lit {
-                lit: Lit::Bool {
-                    value: false,
-                },
-            },
-        },
-        then_branch: Block {
-            stmts: [],
-        },
-    }
-    "###);
-}
-
-#[test]
-fn test_tuple_comma() {
-    let mut expr = ExprTuple {
-        attrs: Vec::new(),
-        paren_token: token::Paren::default(),
-        elems: Punctuated::new(),
-    };
-    snapshot!(expr.to_token_stream() as Expr, @"Expr::Tuple");
-
-    expr.elems.push_value(parse_quote!(continue));
-    // Must not parse to Expr::Paren
-    snapshot!(expr.to_token_stream() as Expr, @r###"
-    Expr::Tuple {
-        elems: [
-            Expr::Continue,
-            Token![,],
-        ],
-    }
-    "###);
-
-    expr.elems.push_punct(<Token![,]>::default());
-    snapshot!(expr.to_token_stream() as Expr, @r###"
-    Expr::Tuple {
-        elems: [
-            Expr::Continue,
-            Token![,],
-        ],
-    }
-    "###);
-
-    expr.elems.push_value(parse_quote!(continue));
-    snapshot!(expr.to_token_stream() as Expr, @r###"
-    Expr::Tuple {
-        elems: [
-            Expr::Continue,
-            Token![,],
-            Expr::Continue,
-        ],
-    }
-    "###);
-
-    expr.elems.push_punct(<Token![,]>::default());
-    snapshot!(expr.to_token_stream() as Expr, @r###"
-    Expr::Tuple {
-        elems: [
-            Expr::Continue,
-            Token![,],
-            Expr::Continue,
-            Token![,],
-        ],
-    }
-    "###);
 }

@@ -620,6 +620,7 @@ pub mod issue45 {
     }
 
     #[test]
+    #[cfg_attr(miri, ignore)] // https://github.com/matklad/once_cell/pull/185
     fn tracing() {
         // Create the future outside of the subscriber, as no call to tracing
         // should be made until the future is polled.
@@ -872,7 +873,7 @@ pub mod issue89 {
     }
 
     #[async_trait]
-    impl Trait for dyn Send + Sync {
+    impl Trait for Send + Sync {
         async fn f(&self) {}
     }
 
@@ -946,7 +947,7 @@ pub mod issue92 {
             mac!(let _ = <Self>::associated1(););
 
             // trait items
-            mac!(let (): <Self as Trait>::Associated2;);
+            mac!(let _: <Self as Trait>::Associated2;);
             mac!(Self::ASSOCIATED2;);
             mac!(<Self>::ASSOCIATED2;);
             mac!(<Self as Trait>::ASSOCIATED2;);
@@ -1354,7 +1355,7 @@ pub mod issue161 {
     impl Trait for MyStruct {
         async fn f(self: Arc<Self>) {
             futures::select! {
-                () = async {
+                _ = async {
                     println!("{}", self.0);
                 }.fuse() => {}
             }

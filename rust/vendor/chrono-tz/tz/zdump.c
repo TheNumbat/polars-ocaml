@@ -602,7 +602,7 @@ main(int argc, char *argv[])
 		if (!tz) {
 		  char const *e = strerror(errno);
 		  fprintf(stderr, _("%s: unknown timezone '%s': %s\n"),
-			  progname, argv[i], e);
+			  progname, argv[1], e);
 		  return EXIT_FAILURE;
 		}
 		if (now) {
