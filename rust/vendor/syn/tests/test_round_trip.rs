@@ -3,7 +3,6 @@
 #![recursion_limit = "1024"]
 #![feature(rustc_private)]
 #![allow(
-    clippy::blocks_in_conditions,
     clippy::manual_assert,
     clippy::manual_let_else,
     clippy::match_like_matches_macro,
@@ -165,7 +164,7 @@ fn translate_message(diagnostic: &Diagnostic) -> Cow<'static, str> {
         };
     }
 
-    let message = &diagnostic.messages[0].0;
+    let message = &diagnostic.message[0].0;
     let args = translation::to_fluent_args(diagnostic.args());
 
     let (identifier, attr) = match message {

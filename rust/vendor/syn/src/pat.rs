@@ -74,13 +74,12 @@ ast_enum_of_structs! {
         // For testing exhaustiveness in downstream code, use the following idiom:
         //
         //     match pat {
-        //         #![cfg_attr(test, deny(non_exhaustive_omitted_patterns))]
-        //
         //         Pat::Box(pat) => {...}
         //         Pat::Ident(pat) => {...}
         //         ...
         //         Pat::Wild(pat) => {...}
         //
+        //         #[cfg_attr(test, deny(non_exhaustive_omitted_patterns))]
         //         _ => { /* some sane fallback */ }
         //     }
         //
@@ -118,7 +117,6 @@ ast_struct! {
 
 ast_struct! {
     /// A parenthesized pattern: `(A | B)`.
-    #[cfg_attr(doc_cfg, doc(cfg(feature = "full")))]
     pub struct PatParen {
         pub attrs: Vec<Attribute>,
         pub paren_token: token::Paren,
@@ -228,8 +226,8 @@ ast_struct! {
 #[cfg(feature = "parsing")]
 pub(crate) mod parsing {
     use super::*;
-    use crate::ext::IdentExt as _;
-    use crate::parse::{Parse, ParseBuffer, ParseStream, Result};
+    use crate::ext::IdentExt;
+    use crate::parse::{ParseBuffer, ParseStream, Result};
     use crate::path;
 
     #[cfg_attr(doc_cfg, doc(cfg(feature = "parsing")))]
@@ -353,18 +351,6 @@ pub(crate) mod parsing {
         pub fn parse_multi_with_leading_vert(input: ParseStream) -> Result<Self> {
             let leading_vert: Option<Token![|]> = input.parse()?;
             multi_pat_impl(input, leading_vert)
-        }
-    }
-
-    #[cfg_attr(doc_cfg, doc(cfg(feature = "parsing")))]
-    impl Parse for PatType {
-        fn parse(input: ParseStream) -> Result<Self> {
-            Ok(PatType {
-                attrs: Vec::new(),
-                pat: Box::new(Pat::parse_single(input)?),
-                colon_token: input.parse()?,
-                ty: input.parse()?,
-            })
         }
     }
 
@@ -520,6 +506,15 @@ pub(crate) mod parsing {
         })
     }
 
+    impl Member {
+        fn is_unnamed(&self) -> bool {
+            match self {
+                Member::Named(_) => false,
+                Member::Unnamed(_) => true,
+            }
+        }
+    }
+
     fn field_pat(input: ParseStream) -> Result<FieldPat> {
         let begin = input.fork();
         let boxed: Option<Token![box]> = input.parse()?;
@@ -533,7 +528,7 @@ pub(crate) mod parsing {
         }?;
 
         if boxed.is_none() && by_ref.is_none() && mutability.is_none() && input.peek(Token![:])
-            || !member.is_named()
+            || member.is_unnamed()
         {
             return Ok(FieldPat {
                 attrs: Vec::new(),
@@ -861,15 +856,6 @@ mod printing {
             tokens.append_all(self.attrs.outer());
             self.paren_token.surround(tokens, |tokens| {
                 self.elems.to_tokens(tokens);
-                // If there is only one element, a trailing comma is needed to
-                // distinguish PatTuple from PatParen, unless this is `(..)`
-                // which is a tuple pattern even without comma.
-                if self.elems.len() == 1
-                    && !self.elems.trailing_punct()
-                    && !matches!(self.elems[0], Pat::Rest { .. })
-                {
-                    <Token![,]>::default().to_tokens(tokens);
-                }
             });
         }
     }

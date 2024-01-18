@@ -266,16 +266,19 @@ impl Clone for Expr {
             Expr::Macro(v0) => Expr::Macro(v0.clone()),
             #[cfg(feature = "full")]
             Expr::Match(v0) => Expr::Match(v0.clone()),
+            #[cfg(feature = "full")]
             Expr::MethodCall(v0) => Expr::MethodCall(v0.clone()),
             Expr::Paren(v0) => Expr::Paren(v0.clone()),
             Expr::Path(v0) => Expr::Path(v0.clone()),
             #[cfg(feature = "full")]
             Expr::Range(v0) => Expr::Range(v0.clone()),
+            #[cfg(feature = "full")]
             Expr::Reference(v0) => Expr::Reference(v0.clone()),
             #[cfg(feature = "full")]
             Expr::Repeat(v0) => Expr::Repeat(v0.clone()),
             #[cfg(feature = "full")]
             Expr::Return(v0) => Expr::Return(v0.clone()),
+            #[cfg(feature = "full")]
             Expr::Struct(v0) => Expr::Struct(v0.clone()),
             #[cfg(feature = "full")]
             Expr::Try(v0) => Expr::Try(v0.clone()),
@@ -574,7 +577,7 @@ impl Clone for ExprMatch {
         }
     }
 }
-#[cfg(any(feature = "derive", feature = "full"))]
+#[cfg(feature = "full")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
 impl Clone for ExprMethodCall {
     fn clone(&self) -> Self {
@@ -623,7 +626,7 @@ impl Clone for ExprRange {
         }
     }
 }
-#[cfg(any(feature = "derive", feature = "full"))]
+#[cfg(feature = "full")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
 impl Clone for ExprReference {
     fn clone(&self) -> Self {
@@ -659,7 +662,7 @@ impl Clone for ExprReturn {
         }
     }
 }
-#[cfg(any(feature = "derive", feature = "full"))]
+#[cfg(feature = "full")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
 impl Clone for ExprStruct {
     fn clone(&self) -> Self {
@@ -788,7 +791,7 @@ impl Clone for FieldPat {
         }
     }
 }
-#[cfg(any(feature = "derive", feature = "full"))]
+#[cfg(feature = "full")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
 impl Clone for FieldValue {
     fn clone(&self) -> Self {

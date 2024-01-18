@@ -432,16 +432,19 @@ impl Debug for Expr {
             Expr::Macro(v0) => v0.debug(formatter, "Macro"),
             #[cfg(feature = "full")]
             Expr::Match(v0) => v0.debug(formatter, "Match"),
+            #[cfg(feature = "full")]
             Expr::MethodCall(v0) => v0.debug(formatter, "MethodCall"),
             Expr::Paren(v0) => v0.debug(formatter, "Paren"),
             Expr::Path(v0) => v0.debug(formatter, "Path"),
             #[cfg(feature = "full")]
             Expr::Range(v0) => v0.debug(formatter, "Range"),
+            #[cfg(feature = "full")]
             Expr::Reference(v0) => v0.debug(formatter, "Reference"),
             #[cfg(feature = "full")]
             Expr::Repeat(v0) => v0.debug(formatter, "Repeat"),
             #[cfg(feature = "full")]
             Expr::Return(v0) => v0.debug(formatter, "Return"),
+            #[cfg(feature = "full")]
             Expr::Struct(v0) => v0.debug(formatter, "Struct"),
             #[cfg(feature = "full")]
             Expr::Try(v0) => v0.debug(formatter, "Try"),
@@ -859,7 +862,7 @@ impl Debug for ExprMatch {
         self.debug(formatter, "ExprMatch")
     }
 }
-#[cfg(any(feature = "derive", feature = "full"))]
+#[cfg(feature = "full")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "extra-traits")))]
 impl Debug for ExprMethodCall {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
@@ -928,7 +931,7 @@ impl Debug for ExprRange {
         self.debug(formatter, "ExprRange")
     }
 }
-#[cfg(any(feature = "derive", feature = "full"))]
+#[cfg(feature = "full")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "extra-traits")))]
 impl Debug for ExprReference {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
@@ -979,7 +982,7 @@ impl Debug for ExprReturn {
         self.debug(formatter, "ExprReturn")
     }
 }
-#[cfg(any(feature = "derive", feature = "full"))]
+#[cfg(feature = "full")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "extra-traits")))]
 impl Debug for ExprStruct {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
@@ -1149,7 +1152,7 @@ impl Debug for FieldPat {
         formatter.finish()
     }
 }
-#[cfg(any(feature = "derive", feature = "full"))]
+#[cfg(feature = "full")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "extra-traits")))]
 impl Debug for FieldValue {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {

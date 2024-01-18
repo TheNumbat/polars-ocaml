@@ -4,9 +4,8 @@
 mod macros;
 
 use proc_macro2::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
-use quote::{quote, ToTokens as _};
-use syn::punctuated::Punctuated;
-use syn::{parse_quote, token, Token, Type, TypeTuple};
+use quote::quote;
+use syn::Type;
 
 #[test]
 fn test_mut_self() {
@@ -171,7 +170,6 @@ fn test_group_colons() {
                         ],
                     },
                 },
-                Token![::],
                 PathSegment {
                     ident: "Item",
                 },
@@ -247,7 +245,6 @@ fn test_trait_object() {
                     ],
                 },
             }),
-            Token![+],
             TypeParamBound::Lifetime {
                 ident: "static",
             },
@@ -263,7 +260,6 @@ fn test_trait_object() {
             TypeParamBound::Lifetime {
                 ident: "a",
             },
-            Token![+],
             TypeParamBound::Trait(TraitBound {
                 path: Path {
                     segments: [
@@ -298,7 +294,6 @@ fn test_trailing_plus() {
                     ],
                 },
             }),
-            Token![+],
         ],
     }
     "###);
@@ -318,7 +313,6 @@ fn test_trailing_plus() {
                     ],
                 },
             }),
-            Token![+],
         ],
     }
     "###);
@@ -337,60 +331,6 @@ fn test_trailing_plus() {
                     ],
                 },
             }),
-            Token![+],
-        ],
-    }
-    "###);
-}
-
-#[test]
-fn test_tuple_comma() {
-    let mut expr = TypeTuple {
-        paren_token: token::Paren::default(),
-        elems: Punctuated::new(),
-    };
-    snapshot!(expr.to_token_stream() as Type, @"Type::Tuple");
-
-    expr.elems.push_value(parse_quote!(_));
-    // Must not parse to Type::Paren
-    snapshot!(expr.to_token_stream() as Type, @r###"
-    Type::Tuple {
-        elems: [
-            Type::Infer,
-            Token![,],
-        ],
-    }
-    "###);
-
-    expr.elems.push_punct(<Token![,]>::default());
-    snapshot!(expr.to_token_stream() as Type, @r###"
-    Type::Tuple {
-        elems: [
-            Type::Infer,
-            Token![,],
-        ],
-    }
-    "###);
-
-    expr.elems.push_value(parse_quote!(_));
-    snapshot!(expr.to_token_stream() as Type, @r###"
-    Type::Tuple {
-        elems: [
-            Type::Infer,
-            Token![,],
-            Type::Infer,
-        ],
-    }
-    "###);
-
-    expr.elems.push_punct(<Token![,]>::default());
-    snapshot!(expr.to_token_stream() as Type, @r###"
-    Type::Tuple {
-        elems: [
-            Type::Infer,
-            Token![,],
-            Type::Infer,
-            Token![,],
         ],
     }
     "###);

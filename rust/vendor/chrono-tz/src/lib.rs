@@ -105,7 +105,7 @@
 //! # }
 //! ```
 //!
-//! You can convert a timezone string to a timezone using the `FromStr` trait
+//! You can convert a timezone string to a timezone using the FromStr trait
 //!
 //! ```
 //! # extern crate chrono;
@@ -122,14 +122,13 @@
 //! # }
 //! ```
 //!
-//! If you need to iterate over all variants you can use the `TZ_VARIANTS` array
+//! If you need to iterate over all variants you can use the TZ_VARIANTS array
 //! ```
 //! use chrono_tz::{TZ_VARIANTS, Tz};
 //! assert!(TZ_VARIANTS.iter().any(|v| *v == Tz::UTC));
 //! ```
 
 #![cfg_attr(not(feature = "std"), no_std)]
-#![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
 
 #[cfg(feature = "serde")]
 mod serde;
@@ -144,7 +143,6 @@ pub use crate::timezone_impl::{OffsetComponents, OffsetName};
 pub use crate::timezones::ParseError;
 pub use crate::timezones::Tz;
 pub use crate::timezones::TZ_VARIANTS;
-pub use crate::IANA_TZDB_VERSION;
 
 #[cfg(test)]
 mod tests {
@@ -160,22 +158,21 @@ mod tests {
     use super::Pacific::Noumea;
     use super::Pacific::Tahiti;
     use super::Tz;
-    use super::IANA_TZDB_VERSION;
     use super::US::Eastern;
     use super::UTC;
-    use chrono::{Duration, NaiveDate, TimeZone};
+    use chrono::{Duration, TimeZone};
 
     #[test]
     fn london_to_berlin() {
-        let dt = London.with_ymd_and_hms(2016, 10, 8, 17, 0, 0).unwrap();
+        let dt = London.ymd(2016, 10, 8).and_hms(17, 0, 0);
         let converted = dt.with_timezone(&Berlin);
-        let expected = Berlin.with_ymd_and_hms(2016, 10, 8, 18, 0, 0).unwrap();
+        let expected = Berlin.ymd(2016, 10, 8).and_hms(18, 0, 0);
         assert_eq!(converted, expected);
     }
 
     #[test]
     fn us_eastern_dst_commutativity() {
-        let dt = UTC.with_ymd_and_hms(2002, 4, 7, 7, 0, 0).unwrap();
+        let dt = UTC.ymd(2002, 4, 7).and_hms(7, 0, 0);
         for days in -420..720 {
             let dt1 = (dt + Duration::days(days)).with_timezone(&Eastern);
             let dt2 = dt.with_timezone(&Eastern) + Duration::days(days);
@@ -187,7 +184,7 @@ mod tests {
     fn test_addition_across_dst_boundary() {
         use chrono::TimeZone;
         let two_hours = Duration::hours(2);
-        let edt = Eastern.with_ymd_and_hms(2019, 11, 3, 0, 0, 0).unwrap();
+        let edt = Eastern.ymd(2019, 11, 3).and_hms(0, 0, 0);
         let est = edt + two_hours;
 
         assert_eq!(edt.to_string(), "2019-11-03 00:00:00 EDT".to_string());
@@ -197,7 +194,7 @@ mod tests {
 
     #[test]
     fn warsaw_tz_name() {
-        let dt = UTC.with_ymd_and_hms(1915, 8, 4, 22, 35, 59).unwrap();
+        let dt = UTC.ymd(1915, 8, 4).and_hms(22, 35, 59);
         assert_eq!(dt.with_timezone(&Warsaw).format("%Z").to_string(), "WMT");
         let dt = dt + Duration::seconds(1);
         assert_eq!(dt.with_timezone(&Warsaw).format("%Z").to_string(), "CET");
@@ -205,45 +202,45 @@ mod tests {
 
     #[test]
     fn vilnius_utc_offset() {
-        let dt = UTC.with_ymd_and_hms(1916, 12, 31, 22, 35, 59).unwrap().with_timezone(&Vilnius);
-        assert_eq!(dt, Vilnius.with_ymd_and_hms(1916, 12, 31, 23, 59, 59).unwrap());
+        let dt = UTC.ymd(1916, 12, 31).and_hms(22, 35, 59).with_timezone(&Vilnius);
+        assert_eq!(dt, Vilnius.ymd(1916, 12, 31).and_hms(23, 59, 59));
         let dt = dt + Duration::seconds(1);
-        assert_eq!(dt, Vilnius.with_ymd_and_hms(1917, 1, 1, 0, 11, 36).unwrap());
+        assert_eq!(dt, Vilnius.ymd(1917, 1, 1).and_hms(0, 11, 36));
     }
 
     #[test]
     fn victorian_times() {
-        let dt = UTC.with_ymd_and_hms(1847, 12, 1, 0, 1, 14).unwrap().with_timezone(&London);
-        assert_eq!(dt, London.with_ymd_and_hms(1847, 11, 30, 23, 59, 59).unwrap());
+        let dt = UTC.ymd(1847, 12, 1).and_hms(0, 1, 14).with_timezone(&London);
+        assert_eq!(dt, London.ymd(1847, 11, 30).and_hms(23, 59, 59));
         let dt = dt + Duration::seconds(1);
-        assert_eq!(dt, London.with_ymd_and_hms(1847, 12, 1, 0, 1, 15).unwrap());
+        assert_eq!(dt, London.ymd(1847, 12, 1).and_hms(0, 1, 15));
     }
 
     #[test]
     fn london_dst() {
-        let dt = London.with_ymd_and_hms(2016, 3, 10, 5, 0, 0).unwrap();
+        let dt = London.ymd(2016, 3, 10).and_hms(5, 0, 0);
         let later = dt + Duration::days(180);
-        let expected = London.with_ymd_and_hms(2016, 9, 6, 6, 0, 0).unwrap();
+        let expected = London.ymd(2016, 9, 6).and_hms(6, 0, 0);
         assert_eq!(later, expected);
     }
 
     #[test]
     fn international_date_line_change() {
-        let dt = UTC.with_ymd_and_hms(2011, 12, 30, 9, 59, 59).unwrap().with_timezone(&Apia);
-        assert_eq!(dt, Apia.with_ymd_and_hms(2011, 12, 29, 23, 59, 59).unwrap());
+        let dt = UTC.ymd(2011, 12, 30).and_hms(9, 59, 59).with_timezone(&Apia);
+        assert_eq!(dt, Apia.ymd(2011, 12, 29).and_hms(23, 59, 59));
         let dt = dt + Duration::seconds(1);
-        assert_eq!(dt, Apia.with_ymd_and_hms(2011, 12, 31, 0, 0, 0).unwrap());
+        assert_eq!(dt, Apia.ymd(2011, 12, 31).and_hms(0, 0, 0));
     }
 
     #[test]
     fn negative_offset_with_minutes_and_seconds() {
-        let dt = UTC.with_ymd_and_hms(1900, 1, 1, 12, 0, 0).unwrap().with_timezone(&Danmarkshavn);
-        assert_eq!(dt, Danmarkshavn.with_ymd_and_hms(1900, 1, 1, 10, 45, 20).unwrap());
+        let dt = UTC.ymd(1900, 1, 1).and_hms(12, 0, 0).with_timezone(&Danmarkshavn);
+        assert_eq!(dt, Danmarkshavn.ymd(1900, 1, 1).and_hms(10, 45, 20));
     }
 
     #[test]
     fn monotonicity() {
-        let mut dt = Noumea.with_ymd_and_hms(1800, 1, 1, 12, 0, 0).unwrap();
+        let mut dt = Noumea.ymd(1800, 1, 1).and_hms(12, 0, 0);
         for _ in 0..24 * 356 * 400 {
             let new = dt + Duration::hours(1);
             assert!(new > dt);
@@ -255,10 +252,9 @@ mod tests {
     fn test_inverse<T: TimeZone>(tz: T, begin: i32, end: i32) {
         for y in begin..end {
             for d in 1..366 {
-                let date = NaiveDate::from_yo_opt(y, d).unwrap();
                 for h in 0..24 {
                     for m in 0..60 {
-                        let dt = date.and_hms_opt(h, m, 0).unwrap().and_utc();
+                        let dt = UTC.yo(y, d).and_hms(h, m, 0);
                         let with_tz = dt.with_timezone(&tz);
                         let utc = with_tz.with_timezone(&UTC);
                         assert_eq!(dt, utc);
@@ -290,7 +286,7 @@ mod tests {
 
     #[test]
     fn string_representation() {
-        let dt = UTC.with_ymd_and_hms(2000, 9, 1, 12, 30, 15).unwrap().with_timezone(&Adelaide);
+        let dt = UTC.ymd(2000, 9, 1).and_hms(12, 30, 15).with_timezone(&Adelaide);
         assert_eq!(dt.to_string(), "2000-09-01 22:00:15 ACST");
         assert_eq!(format!("{:?}", dt), "2000-09-01T22:00:15ACST");
         assert_eq!(dt.to_rfc3339(), "2000-09-01T22:00:15+09:30");
@@ -299,86 +295,62 @@ mod tests {
 
     #[test]
     fn tahiti() {
-        let dt = UTC.with_ymd_and_hms(1912, 10, 1, 9, 58, 16).unwrap().with_timezone(&Tahiti);
+        let dt = UTC.ymd(1912, 10, 1).and_hms(9, 58, 16).with_timezone(&Tahiti);
         let before = dt - Duration::hours(1);
-        assert_eq!(before, Tahiti.with_ymd_and_hms(1912, 9, 30, 23, 0, 0).unwrap());
+        assert_eq!(before, Tahiti.ymd(1912, 9, 30).and_hms(23, 0, 0));
         let after = dt + Duration::hours(1);
-        assert_eq!(after, Tahiti.with_ymd_and_hms(1912, 10, 1, 0, 58, 16).unwrap());
+        assert_eq!(after, Tahiti.ymd(1912, 10, 1).and_hms(0, 58, 16));
     }
 
     #[test]
+    #[should_panic]
     fn nonexistent_time() {
-        assert!(London.with_ymd_and_hms(2016, 3, 27, 1, 30, 0).single().is_none());
+        let _ = London.ymd(2016, 3, 27).and_hms(1, 30, 0);
     }
 
     #[test]
+    #[should_panic]
     fn nonexistent_time_2() {
-        assert!(London.with_ymd_and_hms(2016, 3, 27, 1, 0, 0).single().is_none());
+        let _ = London.ymd(2016, 3, 27).and_hms(1, 0, 0);
     }
 
     #[test]
     fn time_exists() {
-        assert!(London.with_ymd_and_hms(2016, 3, 27, 2, 0, 0).single().is_some());
+        let _ = London.ymd(2016, 3, 27).and_hms(2, 0, 0);
     }
 
     #[test]
+    #[should_panic]
     fn ambiguous_time() {
-        let ambiguous = London.with_ymd_and_hms(2016, 10, 30, 1, 0, 0);
-        let earliest_utc =
-            NaiveDate::from_ymd_opt(2016, 10, 30).unwrap().and_hms_opt(0, 0, 0).unwrap();
-        assert_eq!(ambiguous.earliest().unwrap(), London.from_utc_datetime(&earliest_utc));
-        let latest_utc =
-            NaiveDate::from_ymd_opt(2016, 10, 30).unwrap().and_hms_opt(1, 0, 0).unwrap();
-        assert_eq!(ambiguous.latest().unwrap(), London.from_utc_datetime(&latest_utc));
+        let _ = London.ymd(2016, 10, 30).and_hms(1, 0, 0);
     }
 
     #[test]
+    #[should_panic]
     fn ambiguous_time_2() {
-        let ambiguous = London.with_ymd_and_hms(2016, 10, 30, 1, 30, 0);
-        let earliest_utc =
-            NaiveDate::from_ymd_opt(2016, 10, 30).unwrap().and_hms_opt(0, 30, 0).unwrap();
-        assert_eq!(ambiguous.earliest().unwrap(), London.from_utc_datetime(&earliest_utc));
-        let latest_utc =
-            NaiveDate::from_ymd_opt(2016, 10, 30).unwrap().and_hms_opt(1, 30, 0).unwrap();
-        assert_eq!(ambiguous.latest().unwrap(), London.from_utc_datetime(&latest_utc));
+        let _ = London.ymd(2016, 10, 30).and_hms(1, 30, 0);
     }
 
     #[test]
+    #[should_panic]
     fn ambiguous_time_3() {
-        let ambiguous = Moscow.with_ymd_and_hms(2014, 10, 26, 1, 30, 0);
-        let earliest_utc =
-            NaiveDate::from_ymd_opt(2014, 10, 25).unwrap().and_hms_opt(21, 30, 0).unwrap();
-        assert_eq!(
-            ambiguous.earliest().unwrap().fixed_offset(),
-            Moscow.from_utc_datetime(&earliest_utc).fixed_offset()
-        );
-        let latest_utc =
-            NaiveDate::from_ymd_opt(2014, 10, 25).unwrap().and_hms_opt(22, 30, 0).unwrap();
-        assert_eq!(ambiguous.latest().unwrap(), Moscow.from_utc_datetime(&latest_utc));
+        let _ = Moscow.ymd(2014, 10, 26).and_hms(1, 30, 0);
     }
 
     #[test]
+    #[should_panic]
     fn ambiguous_time_4() {
-        let ambiguous = Moscow.with_ymd_and_hms(2014, 10, 26, 1, 0, 0);
-        let earliest_utc =
-            NaiveDate::from_ymd_opt(2014, 10, 25).unwrap().and_hms_opt(21, 0, 0).unwrap();
-        assert_eq!(
-            ambiguous.earliest().unwrap().fixed_offset(),
-            Moscow.from_utc_datetime(&earliest_utc).fixed_offset()
-        );
-        let latest_utc =
-            NaiveDate::from_ymd_opt(2014, 10, 25).unwrap().and_hms_opt(22, 0, 0).unwrap();
-        assert_eq!(ambiguous.latest().unwrap(), Moscow.from_utc_datetime(&latest_utc));
+        let _ = Moscow.ymd(2014, 10, 26).and_hms(1, 0, 0);
     }
 
     #[test]
     fn unambiguous_time() {
-        assert!(London.with_ymd_and_hms(2016, 10, 30, 2, 0, 0).single().is_some());
+        let _ = London.ymd(2016, 10, 30).and_hms(2, 0, 0);
     }
 
     #[test]
     fn unambiguous_time_2() {
-        assert!(Moscow.with_ymd_and_hms(2014, 10, 26, 2, 0, 0).single().is_some());
+        let _ = Moscow.ymd(2014, 10, 26).and_hms(2, 0, 0);
     }
 
     #[test]
@@ -402,14 +374,5 @@ mod tests {
         #[allow(dead_code)]
         #[derive(Hash)]
         struct Foo(Tz);
-    }
-
-    #[test]
-    fn test_iana_tzdb_version() {
-        // Format should be something like 2023c.
-        assert_eq!(5, IANA_TZDB_VERSION.len());
-        let numbers: Vec<&str> = IANA_TZDB_VERSION.matches(char::is_numeric).collect();
-        assert_eq!(4, numbers.len());
-        assert!(IANA_TZDB_VERSION.ends_with(|c: char| c.is_ascii_lowercase()));
     }
 }

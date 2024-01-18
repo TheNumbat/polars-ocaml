@@ -70,13 +70,12 @@ ast_enum_of_structs! {
         // For testing exhaustiveness in downstream code, use the following idiom:
         //
         //     match item {
-        //         #![cfg_attr(test, deny(non_exhaustive_omitted_patterns))]
-        //
         //         Item::Const(item) => {...}
         //         Item::Enum(item) => {...}
         //         ...
         //         Item::Verbatim(item) => {...}
         //
+        //         #[cfg_attr(test, deny(non_exhaustive_omitted_patterns))]
         //         _ => { /* some sane fallback */ }
         //     }
         //
@@ -511,13 +510,12 @@ ast_enum_of_structs! {
         // For testing exhaustiveness in downstream code, use the following idiom:
         //
         //     match item {
-        //         #![cfg_attr(test, deny(non_exhaustive_omitted_patterns))]
-        //
         //         ForeignItem::Fn(item) => {...}
         //         ForeignItem::Static(item) => {...}
         //         ...
         //         ForeignItem::Verbatim(item) => {...}
         //
+        //         #[cfg_attr(test, deny(non_exhaustive_omitted_patterns))]
         //         _ => { /* some sane fallback */ }
         //     }
         //
@@ -606,13 +604,12 @@ ast_enum_of_structs! {
         // For testing exhaustiveness in downstream code, use the following idiom:
         //
         //     match item {
-        //         #![cfg_attr(test, deny(non_exhaustive_omitted_patterns))]
-        //
         //         TraitItem::Const(item) => {...}
         //         TraitItem::Fn(item) => {...}
         //         ...
         //         TraitItem::Verbatim(item) => {...}
         //
+        //         #[cfg_attr(test, deny(non_exhaustive_omitted_patterns))]
         //         _ => { /* some sane fallback */ }
         //     }
         //
@@ -703,13 +700,12 @@ ast_enum_of_structs! {
         // For testing exhaustiveness in downstream code, use the following idiom:
         //
         //     match item {
-        //         #![cfg_attr(test, deny(non_exhaustive_omitted_patterns))]
-        //
         //         ImplItem::Const(item) => {...}
         //         ImplItem::Fn(item) => {...}
         //         ...
         //         ImplItem::Verbatim(item) => {...}
         //
+        //         #[cfg_attr(test, deny(non_exhaustive_omitted_patterns))]
         //         _ => { /* some sane fallback */ }
         //     }
         //
@@ -894,8 +890,8 @@ ast_enum! {
 #[cfg(feature = "parsing")]
 pub(crate) mod parsing {
     use super::*;
-    use crate::ext::IdentExt as _;
-    use crate::parse::discouraged::Speculative as _;
+    use crate::ext::IdentExt;
+    use crate::parse::discouraged::Speculative;
     use crate::parse::{Parse, ParseBuffer, ParseStream, Result};
 
     #[cfg_attr(doc_cfg, doc(cfg(feature = "parsing")))]

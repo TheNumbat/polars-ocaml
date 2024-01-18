@@ -144,7 +144,6 @@ fn test_parse_path() {
             PathSegment {
                 ident: "serde",
             },
-            Token![::],
             PathSegment {
                 ident: "Serialize",
             },
