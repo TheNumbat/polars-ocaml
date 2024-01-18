@@ -1,5 +1,20 @@
 [source.crates-io]
 replace-with = "vendored-sources"
 
+[source.ocaml-boxroot-sys]
+git = "git+https://github.com/TheNumbat/ocaml-boxroot?branch=ocaml5#73f51b8ece13ebfc7709fd6d6adaee24fffead3c"
+branch = "ocaml5"
+replace-with = "vendored-sources"
+
+[source.ocaml-interop]
+git = "git+https://github.com/TheNumbat/ocaml-interop?branch=boxroot030#3737a64c79703ef402de03f0278c0d305925a663"
+branch = "boxroot030"
+replace-with = "vendored-sources"
+
+[source.ocaml-rs]
+git = "git+https://github.com/TheNumbat/ocaml-rs?branch=ocaml5#b25550a353ddb893f640892ca9d9bac587d3d350"
+branch = "ocaml5"
+replace-with = "vendored-sources"
+
 [source.vendored-sources]
 directory = "vendor"
