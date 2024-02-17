@@ -1,6 +1,58 @@
 # `wasm-bindgen` Change Log
 --------------------------------------------------------------------------------
 
+## [0.2.91](https://github.com/rustwasm/wasm-bindgen/compare/0.2.90...0.2.91)
+
+Released 2024-02-06
+
+### Added
+
+* Add unstable bindings for the FileSystemAccess API
+  [#3810](https://github.com/rustwasm/wasm-bindgen/pull/3810)
+
+* Added support for running tests in shared and service workers with ``wasm_bindgen_test_configure!` `run_in_shared_worker` and `run_in_service_worker`.
+  [#3804](https://github.com/rustwasm/wasm-bindgen/pull/3804)
+
+* Accept the `--skip` flag with `wasm-bindgen-test-runner`.
+  [#3803](https://github.com/rustwasm/wasm-bindgen/pull/3803)
+
+* Introduce environment variable `WASM_BINDGEN_TEST_NO_ORIGIN_ISOLATION` to disable origin isolation for `wasm-bindgen-test-runner`.
+  [#3807](https://github.com/rustwasm/wasm-bindgen/pull/3807)
+
+* Add bindings for `USBDevice.forget()`.
+  [#3821](https://github.com/rustwasm/wasm-bindgen/pull/3821)
+
+### Changed
+
+* Stabilize `ClipboardEvent`.
+  [#3791](https://github.com/rustwasm/wasm-bindgen/pull/3791)
+
+* Use immutable buffers in `SubtleCrypto` methods.
+  [#3797](https://github.com/rustwasm/wasm-bindgen/pull/3797)
+
+* Deprecate `wasm_bindgen_test_configure!`s `run_in_worker` in favor of `run_in_dedicated_worker`.
+  [#3804](https://github.com/rustwasm/wasm-bindgen/pull/3804)
+
+* Updated the WebGPU WebIDL to the current draft as of 2024-01-30. Note that this retains the previous update's workaround for `GPUPipelineError`, and holds back an update to the `buffer` argument of the `GPUQueue.{writeBuffer,writeTexture}` methods.
+  [#3816](https://github.com/rustwasm/wasm-bindgen/pull/3816)
+
+* Depreate `--weak-refs` and `WASM_BINDGEN_WEAKREF` in favor of automatic run-time detection.
+  [#3822](https://github.com/rustwasm/wasm-bindgen/pull/3822)
+
+### Fixed
+
+* Fixed UB when freeing strings received from JS if not using the default allocator.
+  [#3808](https://github.com/rustwasm/wasm-bindgen/pull/3808)
+
+* Fixed temporary folder detection by `wasm-bindgen-test-runner` on MacOS.
+  [#3817](https://github.com/rustwasm/wasm-bindgen/pull/3817)
+
+* Fixed using `#[wasm_bindgen(js_name = default)]` with `#[wasm_bindgen(module = ...)]`.
+  [#3823](https://github.com/rustwasm/wasm-bindgen/pull/3823)
+
+* Fixed nighly build of `wasm-bindgen-futures`.
+  [#3827](https://github.com/rustwasm/wasm-bindgen/pull/3827)
+
 ## [0.2.90](https://github.com/rustwasm/wasm-bindgen/compare/0.2.89...0.2.90)
 
 Released 2024-01-06

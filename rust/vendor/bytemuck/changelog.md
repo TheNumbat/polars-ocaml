@@ -1,5 +1,20 @@
 # `bytemuck` changelog
 
+## 1.14.3
+
+* The new std simd nightly features are apparently arch-specific.
+  This adjusts the feature activation to be x86/ x86_64 only.
+
+## 1.14.2
+
+* Changes the name of the Nightly feature activated by the crate's
+  `nightly_stdsimd` feature. This is needed as of (approximately) Nightly
+  2024-02-06 and later, because the Nightly feature was changed.
+
+## 1.14.1
+
+* docs clarifications.
+
 ## 1.14
 
 * `write_zeroes` and `fill_zeroes` functions: Writes (to one) or fills (a slice)

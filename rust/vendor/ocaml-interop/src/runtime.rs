@@ -51,6 +51,7 @@ impl OCamlRuntime {
 
     #[doc(hidden)]
     #[inline(always)]
+    #[allow(static_mut_ref)]
     pub unsafe fn recover_handle_mut() -> &'static mut Self {
         static mut RUNTIME: OCamlRuntime = OCamlRuntime { _private: () };
         &mut RUNTIME

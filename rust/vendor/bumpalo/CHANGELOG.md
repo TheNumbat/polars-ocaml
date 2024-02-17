@@ -28,6 +28,25 @@ Released YYYY-MM-DD.
 
 --------------------------------------------------------------------------------
 
+## 3.15.0
+
+Released 2024-02-15.
+
+### Changed
+
+* The minimum supported Rust version (MSRV) is now 1.73.0.
+* `bumpalo::collections::String::push_str` and
+  `bumpalo::collections::String::from_str_in` received significant performance
+  improvements.
+* Allocator trait methods are now marked `#[inline]`, increasing performance for
+  some callers.
+
+### Fixed
+
+* Fixed an edge-case bug in the `Allocator::shrink` method.
+
+--------------------------------------------------------------------------------
+
 ## 3.14.0
 
 Released 2023-09-14.

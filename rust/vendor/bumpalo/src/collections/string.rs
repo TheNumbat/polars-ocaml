@@ -680,8 +680,19 @@ impl<'bump> String<'bump> {
     /// assert_eq!(s, "hello");
     /// ```
     pub fn from_str_in(s: &str, bump: &'bump Bump) -> String<'bump> {
-        let mut t = String::with_capacity_in(s.len(), bump);
-        t.push_str(s);
+        let len = s.len();
+        let mut t = String::with_capacity_in(len, bump);
+        // SAFETY:
+        // * `src` is valid for reads of `s.len()` bytes by virtue of being an allocated `&str`.
+        // * `dst` is valid for writes of `s.len()` bytes as `String::with_capacity_in(s.len(), bump)`
+        //   above guarantees that.
+        // * Alignment is not relevant as `u8` has no alignment requirements.
+        // * Source and destination ranges cannot overlap as we just reserved the destination
+        //   range from the bump.
+        unsafe { ptr::copy_nonoverlapping(s.as_ptr(), t.vec.as_mut_ptr(), len) };
+        // SAFETY: We reserved sufficent capacity for the string above.
+        // The elements at `0..len` were initialized by `copy_nonoverlapping` above.
+        unsafe { t.vec.set_len(len) };
         t
     }
 
@@ -925,7 +936,31 @@ impl<'bump> String<'bump> {
     /// ```
     #[inline]
     pub fn push_str(&mut self, string: &str) {
-        self.vec.extend_from_slice(string.as_bytes())
+        // Reserve space in the Vec for the string to be added
+        let old_len = self.vec.len();
+        self.vec.reserve(string.len());
+
+        let new_len = old_len + string.len();
+        debug_assert!(new_len <= self.vec.capacity());
+
+        // Copy string into space just reserved
+        // SAFETY:
+        // * `src` is valid for reads of `string.len()` bytes by virtue of being an allocated `&str`.
+        // * `dst` is valid for writes of `string.len()` bytes as `self.vec.reserve(string.len())`
+        //   above guarantees that.
+        // * Alignment is not relevant as `u8` has no alignment requirements.
+        // * Source and destination ranges cannot overlap as we just reserved the destination
+        //   range from the bump.
+        unsafe {
+            let src = string.as_ptr();
+            let dst = self.vec.as_mut_ptr().add(old_len);
+            ptr::copy_nonoverlapping(src, dst, string.len());
+        }
+
+        // Update length of Vec to include string just pushed
+        // SAFETY: We reserved sufficent capacity for the string above.
+        // The elements at `old_len..new_len` were initialized by `copy_nonoverlapping` above.
+        unsafe { self.vec.set_len(new_len) };
     }
 
     /// Returns this `String`'s capacity, in bytes.

@@ -1,3 +1,5 @@
+#![cfg_attr(docsrs, doc(cfg(feature = "serde")))]
+
 use serde::de::value::{MapDeserializer, SeqDeserializer};
 use serde::de::{
     Deserialize, Deserializer, Error, IntoDeserializer, MapAccess, SeqAccess, Visitor,
@@ -12,9 +14,8 @@ use crate::IndexMap;
 
 impl<K, V, S> Serialize for IndexMap<K, V, S>
 where
-    K: Serialize + Hash + Eq,
+    K: Serialize,
     V: Serialize,
-    S: BuildHasher,
 {
     fn serialize<T>(&self, serializer: T) -> Result<T::Ok, T::Error>
     where
@@ -85,8 +86,7 @@ use crate::IndexSet;
 
 impl<T, S> Serialize for IndexSet<T, S>
 where
-    T: Serialize + Hash + Eq,
-    S: BuildHasher,
+    T: Serialize,
 {
     fn serialize<Se>(&self, serializer: Se) -> Result<Se::Ok, Se::Error>
     where

@@ -11,9 +11,9 @@
 
 [package]
 edition = "2018"
-rust-version = "1.60.0"
+rust-version = "1.72.0"
 name = "ahash"
-version = "0.8.7"
+version = "0.8.8"
 authors = ["Tom Kaitchuck <Tom.Kaitchuck@gmail.com>"]
 build = "./build.rs"
 exclude = [
