@@ -979,7 +979,7 @@ dependencies = [
 [[package]]
 name = "ocaml-boxroot-sys"
 version = "0.3.1"
-source = "git+https://github.com/TheNumbat/ocaml-boxroot?branch=ocaml5#baa463eb08ded333791290e54980144f8165b605"
+source = "git+https://github.com/TheNumbat/ocaml-boxroot?branch=ocaml5#66920cec3f7a4fe5a8aca9d08a380d8bf6cdc238"
 dependencies = [
  "cc",
 ]
