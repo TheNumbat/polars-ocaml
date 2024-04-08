@@ -18,5 +18,9 @@
  (data_only_dirs ocaml*))
 
 (subdir
+ vendor/ocaml
+ (dirs :standard .github))
+
+(subdir
  vendor/futures-core/src/task
  (dirs :standard __internal))
