@@ -968,7 +968,7 @@ dependencies = [
 [[package]]
 name = "ocaml"
 version = "1.0.0-beta.5"
-source = "git+https://github.com/TheNumbat/ocaml-rs?branch=ocaml5#76eeac276a840248805d24b273516aff136eef9e"
+source = "git+https://github.com/TheNumbat/ocaml-rs?branch=ocaml5#70642b96c28c7eff636e36afbaa5279de5f1b233"
 dependencies = [
  "ocaml-boxroot-sys",
  "ocaml-derive",
@@ -987,7 +987,7 @@ dependencies = [
 [[package]]
 name = "ocaml-derive"
 version = "1.0.0-beta.5"
-source = "git+https://github.com/TheNumbat/ocaml-rs?branch=ocaml5#76eeac276a840248805d24b273516aff136eef9e"
+source = "git+https://github.com/TheNumbat/ocaml-rs?branch=ocaml5#70642b96c28c7eff636e36afbaa5279de5f1b233"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1007,7 +1007,7 @@ dependencies = [
 [[package]]
 name = "ocaml-sys"
 version = "0.24.0"
-source = "git+https://github.com/TheNumbat/ocaml-rs?branch=ocaml5#76eeac276a840248805d24b273516aff136eef9e"
+source = "git+https://github.com/TheNumbat/ocaml-rs?branch=ocaml5#70642b96c28c7eff636e36afbaa5279de5f1b233"
 dependencies = [
  "cc",
  "cty",
